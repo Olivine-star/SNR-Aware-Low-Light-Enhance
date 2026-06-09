@@ -44,6 +44,8 @@ def create_dataset(dataset_opt):
         from data.dataset_SMID_test import VideoSameSizeDataset as D
     elif mode == 'video_samesize_SMID_train':
         from data.dataset_SMID_train import VideoSameSizeDataset as D
+    elif mode == 'video_samesize_sde':
+        from data.dataset_SDE import VideoSameSizeDataset as D
     else:
         raise NotImplementedError('Dataset [{:s}] is not recognized.'.format(mode))
     dataset = D(dataset_opt)

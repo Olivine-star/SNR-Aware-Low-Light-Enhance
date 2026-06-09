@@ -1,0 +1,36 @@
+### must be same as training model
+name: SDE_indoor_model
+suffix: ~
+model: video_base4_m
+distortion: sr
+scale: 1
+crop_border: ~
+gpu_ids: [0]
+
+datasets:
+  test:
+    name: SDE_indoor_test
+    mode: video_samesize_sde
+    dataroot_LQ: /media/hzho0442/Project/Code/idea/Low-light/dataset/sde/indoor/sde_in_release/test
+    dataroot_GT: /media/hzho0442/Project/Code/idea/Low-light/dataset/sde/indoor/sde_in_release/test
+    train_size: ~
+    cache_data: true
+    N_frames: 5
+    padding: new_info
+
+#### network structures
+network_G:
+  which_model_G: low_light_transformer
+  nf: 64
+  nframes: 5
+  groups: 8
+  front_RBs: 1
+  back_RBs: 1
+  predeblur: true
+  HR_in: true
+  w_TSA: true
+
+#### path
+path:
+  root: ./
+  pretrain_model_G: ./experiments/SDE_indoor_model/models/latest_G.pth
