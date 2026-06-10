@@ -24,7 +24,7 @@ datasets:
     N_frames: 5     # how many frames as a input.
     use_shuffle: true
     n_workers: 4  # per GPU
-    batch_size: 4
+    batch_size: 32
     GT_size: 128     # size you want to crop out as input sample.
     LQ_size: 128
     use_flip: true

@@ -5,3 +5,6 @@ models/archs/__pycache__/
 models/__pycache__/
 utils/__pycache__/
 options/__pycache__/
+experiments/
+tb_logger/SDSD_indoor_model/events.out.tfevents.1781077489.louck.39572.0
+.gitignore

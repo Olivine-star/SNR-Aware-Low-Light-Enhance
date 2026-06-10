@@ -3,6 +3,7 @@ import math
 import argparse
 import random
 import logging
+import re
 
 import torch
 import torch.distributed as dist
@@ -23,6 +24,28 @@ def format_data_idx(idx):
     if hasattr(idx, 'item'):
         return idx.item()
     return idx
+
+
+def get_existing_best_psnr(models_dir):
+    best_psnr = -float('inf')
+    pattern = re.compile(r'^best_psnr_([-+]?\d+(?:\.\d+)?)_\d+\.pth$')
+    if not os.path.isdir(models_dir):
+        return best_psnr
+    for filename in os.listdir(models_dir):
+        match = pattern.match(filename)
+        if match:
+            best_psnr = max(best_psnr, float(match.group(1)))
+    return best_psnr
+
+
+def save_best_psnr_checkpoint(model, psnr, current_step, best_psnr, logger):
+    if psnr <= best_psnr:
+        return best_psnr
+    save_filename = 'best_psnr_{:.2f}_{:d}.pth'.format(psnr, current_step)
+    save_path = os.path.join(model.opt['path']['models'], save_filename)
+    model.save_network_to_path(model.netG, save_path)
+    logger.info('New best PSNR: {:.4e}. Saved best checkpoint: {:s}'.format(psnr, save_path))
+    return psnr
 
 
 def init_dist(backend='nccl', **kwargs):
@@ -143,6 +166,9 @@ def main():
 
     #### create model
     model = create_model(opt)
+    best_psnr = get_existing_best_psnr(opt['path']['models'])
+    if rank <= 0 and best_psnr > -float('inf'):
+        logger.info('Existing best PSNR: {:.4e}'.format(best_psnr))
 
     #### resume training
     if resume_state:
@@ -191,6 +217,7 @@ def main():
 
             #### validation
             if opt['datasets'].get('val', None) and current_step % opt['train']['val_freq'] == 0:
+                current_val_psnr = None
                 if opt['model'] in ['sr', 'srgan'] and rank <= 0:  # image restoration validation
                     # does not support multi-GPU validation
                     pbar = util.ProgressBar(len(val_loader))
@@ -220,6 +247,7 @@ def main():
                         pbar.update('Test {}'.format(img_name))
 
                     avg_psnr = avg_psnr / idx
+                    current_val_psnr = avg_psnr
 
                     # log
                     logger.info('# Validation # PSNR: {:.4e}'.format(avg_psnr))
@@ -281,6 +309,7 @@ def main():
                             for k, v in psnr_rlt_avg.items():
                                 log_s += ' {}: {:.4e}'.format(k, v)
                             logger.info(log_s)
+                            current_val_psnr = psnr_total_avg
                             if opt['use_tb_logger'] and 'debug' not in opt['name']:
                                 tb_logger.add_scalar('psnr_avg', psnr_total_avg, current_step)
                                 for k, v in psnr_rlt_avg.items():
@@ -315,10 +344,14 @@ def main():
                         for k, v in psnr_rlt_avg.items():
                             log_s += ' {}: {:.4e}'.format(k, v)
                         logger.info(log_s)
+                        current_val_psnr = psnr_total_avg
                         if opt['use_tb_logger'] and 'debug' not in opt['name']:
                             tb_logger.add_scalar('psnr_avg', psnr_total_avg, current_step)
                             for k, v in psnr_rlt_avg.items():
                                 tb_logger.add_scalar(k, v, current_step)
+                if rank <= 0 and current_val_psnr is not None:
+                    best_psnr = save_best_psnr_checkpoint(
+                        model, current_val_psnr, current_step, best_psnr, logger)
 
             #### save models and training states
             if current_step % opt['logger']['save_checkpoint_freq'] == 0:

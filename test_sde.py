@@ -33,6 +33,8 @@ def cleanup_model_tensors(model):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-opt', type=str, required=True, help='Path to SDE test option YAML file.')
+    parser.add_argument('--pretrain_model', type=str, default=None,
+                        help='Optional checkpoint path to override path.pretrain_model_G.')
     parser.add_argument('--save_dir', type=str, default=None,
                         help='Optional root directory for saved SDE inference images.')
     parser.add_argument('--no_save_input', action='store_true',
@@ -40,6 +42,8 @@ def main():
     args = parser.parse_args()
 
     opt = option.parse(args.opt, is_train=False)
+    if args.pretrain_model:
+        opt['path']['pretrain_model_G'] = args.pretrain_model
     opt = option.dict_to_nonedict(opt)
 
     save_root = args.save_dir if args.save_dir else osp.join(opt['path']['results_root'], 'images')
