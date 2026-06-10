@@ -10,15 +10,14 @@ gpu_ids: [0]
 
 datasets:
   test:  # the 1st test dataset
-    name: test
-    mode: video_samesize_SDSD_test
-    dataroot_GT: path_to_datasets/indoor_static_np/GT
-    dataroot_LQ: path_to_datasets/indoor_static_np/input
-    train_size: [960, 512]
+    name: SDSD_indoor_test
+    mode: video_samesize_sdsd_event
+    dataroot_GT: "C:/code/low-light/dataset/sdsd/SDSD_in_event/SDSD_in_2_release/test"
+    dataroot_LQ: "C:/code/low-light/dataset/sdsd/SDSD_in_event/SDSD_in_2_release/test"
+    train_size: ~
     cache_data: true
     N_frames: 5
     padding: new_info
-    testing_dir: pair11,pair21,pair1,pair19,pair4,pair9
 
 #### network structures
 network_G:
@@ -35,4 +34,4 @@ network_G:
 #### path
 path:
   root: ./
-  pretrain_model_G: indoor_G.pth
+  pretrain_model_G: ./experiments/SDSD_indoor_model/models/latest_G.pth

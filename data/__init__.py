@@ -32,6 +32,8 @@ def create_dataset(dataset_opt):
         from data.dataset_SDSD_test import VideoSameSizeDataset as D
     elif mode == 'video_samesize_SDSD_train':
         from data.dataset_SDSD_train import VideoSameSizeDataset as D
+    elif mode == 'video_samesize_sdsd_event':
+        from data.dataset_SDE import VideoSameSizeDataset as D
     elif mode == 'video_samesize_sid':
         from data.dataset_SID import VideoSameSizeDataset as D
     elif mode == 'video_samesize_lol':

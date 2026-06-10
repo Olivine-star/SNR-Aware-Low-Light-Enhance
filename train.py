@@ -16,6 +16,15 @@ from models import create_model
 import numpy as np
 import cv2
 
+
+def format_data_idx(idx):
+    if isinstance(idx, (list, tuple)):
+        return idx[0]
+    if hasattr(idx, 'item'):
+        return idx.item()
+    return idx
+
+
 def init_dist(backend='nccl', **kwargs):
     """initialization for distributed training"""
     if mp.get_start_method(allow_none=True) != 'spawn':
@@ -283,7 +292,7 @@ def main():
                         psnr_total_avg = 0.
                         for val_data in val_loader:
                             folder = val_data['folder'][0]
-                            idx_d = val_data['idx'].item()
+                            idx_d = format_data_idx(val_data['idx'])
                             # border = val_data['border'].item()
                             if psnr_rlt.get(folder, None) is None:
                                 psnr_rlt[folder] = []
